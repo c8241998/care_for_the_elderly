@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <style>
+        .demo-table-expand {
+            font-size: 0;
+        }
+        .demo-table-expand label {
+            width: 90px;
+            color: #99a9bf;
+        }
+        .demo-table-expand .el-form-item {
+            margin-right: 0;
+            margin-bottom: 0;
+            width: 50%;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%">
+            <el-table-column type="expand">
+                <template slot-scope="props">
+                    <el-form label-position="left" inline class="demo-table-expand">
+                        <el-form-item label="截图">
+                            <!-- <span>{{ props.row.lower_wear }}</span> -->
+                            <img :src="props.row.screenshot" style="width:800px; height: 500px;">
+                        </el-form-item>
+                    </el-form>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    label="ID"
+                    prop="id">
+            </el-table-column>
+
+            <el-table-column
+                    label="老人姓名"
+                    prop="oldName">
+            </el-table-column>
+
+            <el-table-column
+                    label="义工姓名"
+                    prop="volunteerName">
+            </el-table-column>
+
+            <el-table-column
+                    label="时间"
+                    prop="time">
+            </el-table-column>
+            </el-table-column>
+        </el-table>
+    </template>
+</div>
+<script>
+    var app = new Vue ({
+        el: "#app",
+        data:{
+            tableData: [],
+        },
+        created: function () {
+            this.show();
+        },
+        methods: {
+            show(){
+                var app_ = this;
+                var list = [];
+                var ajax_url = '/camera/interactinit';
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            var arr = JSON.stringify(data);
+                            list = JSON.stringify(data.content);
+                            obj = JSON.parse(list);
+                            for(var i in obj){
+                                let e = {id:obj[i].id,time:obj[i].time,screenshot:obj[i].photo,oldName:obj[i].elder,volunteerName:obj[i].volunteer};
+                                app_.tableData.push(e);
+                            }
+                        }
+                    }
+                })
+                return false;
+            },
+        }
+    });
+</script>
+</body>
+</html>

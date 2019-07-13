@@ -1,0 +1,7 @@
+{
+    "way":"local",
+    "degree":20,
+    "warn_area":[320,0,640,240],
+    "ip1":"http://172.20.10.2:8000/camera/video_feed/",
+    "ip2":"http://172.20.10.4:8000/camera/video_feed/"
+}

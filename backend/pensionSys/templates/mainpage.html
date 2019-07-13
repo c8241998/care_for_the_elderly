@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-gl/echarts-gl.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
+    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="emotionPie" style="width: 440px;height:300px;float:right"></div>
+<div id="interact" style="width: 790px;height:300px;float:left"></div>
+<div id="emotion" style="height: 300px;width: 790px;float:left"></div>
+
+<div id="area" style="height: 300px;width: 440px;float:right"></div>
+<div id="app"></div>
+</body>
+<script type="text/javascript">
+    var socket = new WebSocket("ws:" + window.location.host + "/websocket/data");
+    socket.onopen = function () {
+        console.log('data WebSocket open');//成功连接上Websocket
+    };
+    socket.onmessage = function (e) {
+        data = JSON.parse(e.data.replace(/\'/g,'\"'));
+        if(data.type=='emotion_pie'){
+            label = data.label;
+            dict = {
+                'angry':0,
+                'disgust':1,
+                'fear':2,
+                'happy':3,
+                'sad':4,
+                'surprise':5
+            };
+            option_emotionPie.series[0].data[dict[label]].value++;
+            myChart_emotionPie.setOption(option_emotionPie);
+        }
+        if(data.type=='area'){
+            area_option.series[0].data[0].value++;
+            myChart_area.setOption(area_option);
+        }
+        console.log(data);
+    };
+    socket.onclose=function(e){
+        console.log(e);
+
+        socket.close(); //关闭TCP连接
+    };
+    if (socket.readyState == WebSocket.OPEN) socket.onopen();
+    window.onbeforeunload = function(event) {
+        console.log("关闭WebSocket连接！");
+        socket.close();
+    }
+</script>
+<script>
+    var myChart_interact = echarts.init(document.getElementById('interact'));
+    var option_interact = {
+        title: {
+            text: '老人交互次数柱状图'
+        },
+        xAxis: {
+            name:'老人姓名',
+            type: 'category',
+            data: []
+        },
+        yAxis: {
+            name:'次数',
+            type: 'value'
+        },
+        series: [{
+            data: [],
+            type: 'bar'
+        }]
+    };
+
+    var myChart_emotionPie = echarts.init(document.getElementById('emotionPie'));
+    var option_emotionPie = {
+        title: {
+            text: '一天内情绪分布饼图'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: "{a} <br/>{b}: {c} ({d}%)"
+        },
+        legend: {
+            orient: 'vertical',
+            x: 'right',
+            data: ['愤怒', '厌恶', '恐惧', '高兴', '伤心', '惊讶']
+        },
+        series: [
+            {
+                name: '访问来源',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                label: {
+                    normal: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        show: true,
+                        textStyle: {
+                            fontSize: '30',
+                            fontWeight: 'bold'
+                        }
+                    }
+                },
+                labelLine: {
+                    normal: {
+                        show: false
+                    }
+                },
+                data: [
+                    { value:"" , name: '愤怒' },
+                    { value:"", name: '厌恶' },
+                    { value:"" , name: '恐惧' },
+                    { value:"" , name: '高兴' },
+                    { value:"" , name: '伤心' },
+                    { value:"" , name: '惊讶' },
+                ]
+            }
+        ]
+    };
+
+    var myChart_area = echarts.init(document.getElementById('area'));
+    var area_option = {
+        title: {
+            text: '禁止区域闯入监控'
+        },
+        tooltip: {
+            formatter: "{a} <br/>{b} : {c}%"
+        },
+        series: [
+            {
+                name: '禁止区域闯入监控',
+                type: 'gauge',
+                data: [{ value: ""}]
+            }
+        ]
+    };
+
+
+    var myChart_emotion= echarts.init(document.getElementById('emotion'));
+    var angry = [];
+    var disgust = [];
+    var fear = [];
+    var happy = [];
+    var sad = [];
+    var surprise = [];
+    var timeEmotion = [];
+
+    var option_emotion = {
+        title: {
+            text: '动态情感检测'
+        },
+        legend: {
+            data:['愤怒','厌恶','恐惧','高兴','伤心', '惊讶']
+        },
+        xAxis: {
+            name:'时间',
+            type: 'category',
+            boundaryGap: false,
+            data: timeEmotion
+        },
+        yAxis: {
+            name:'比例',
+            boundaryGap: [0, '50%'],
+            type: 'value'
+        },
+        series: [ {
+            name:'愤怒',
+            type:'line',
+            data:angry
+        },
+            {
+                name:'厌恶',
+                type:'line',
+                data:disgust
+            },
+            {
+                name:'恐惧',
+                type:'line',
+                data:fear
+            },
+            {
+                name:'高兴',
+                type:'line',
+                data:happy
+            },
+            {
+                name:'伤心',
+                type:'line',
+                data:sad
+            },
+            {
+                name:'惊讶',
+                type:'line',
+                data:surprise
+            }]
+    };
+    myChart_emotion.setOption(option_emotion);
+
+    var vue = new Vue ({
+        el: "#app",
+        data:{
+        },
+        created: function () {
+            this.show();
+        },
+        methods: {
+            show(){
+                myChart_interact.setOption(option_interact);
+                var ajax_url = '/report/init';
+                var list = [];
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            list = JSON.stringify(data.content);
+                            obj = JSON.parse(list);
+                            for(i=0;i<obj.interact.length;i++){
+                                option_interact.xAxis.data[i] = obj.interact[i]['name'];
+                                option_interact.series[0].data[i] = obj.interact[i]['times'];
+                                myChart_interact.setOption(option_interact);
+                            }
+                        }
+                    }
+                })
+
+                var list1 = [];
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            list1 = JSON.stringify(data.content);
+                            obj1 = JSON.parse(list1);
+                            option_emotionPie.series[0].data[0].value = obj1.emotion_pie.angry;
+                            option_emotionPie.series[0].data[1].value=obj1.emotion_pie.disgust;
+                            option_emotionPie.series[0].data[2].value=obj1.emotion_pie.fear;
+                            option_emotionPie.series[0].data[3].value=obj1.emotion_pie.happy;
+                            option_emotionPie.series[0].data[4].value=obj1.emotion_pie.sad;
+                            option_emotionPie.series[0].data[5].value=obj1.emotion_pie.surprise;
+                            myChart_emotionPie.setOption(option_emotionPie);
+                        }
+                    }
+                })
+
+                var list2 = [];
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            list2 = JSON.stringify(data.content);
+                            obj2 = JSON.parse(list2);
+                            for(i=0;i<=10;i++){
+                                setTimeout("vue.addData()",3000);
+
+                            }
+                        }
+                    }
+                })
+                setInterval(function () {
+                    vue.addData(true);
+                    myChart_emotion.setOption(option_emotion);}, 3000);
+
+
+                var list4 = [];
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            list4 = JSON.stringify(data.content);
+                            obj4 = JSON.parse(list4);
+                            area_option.series[0].data[0].value =obj4.area;
+                            myChart_area.setOption(area_option);
+                        }
+                    }
+                })
+
+            },
+            addData(shift) {
+                //接收从数据库传来的次数 添加到number中
+                var myDate = new Date();
+                timeEmotion.push(myDate.getSeconds());
+                option_emotion.series[0].data.push(option_emotionPie.series[0].data[0].value);
+                option_emotion.series[1].data.push(option_emotionPie.series[0].data[1].value);
+                option_emotion.series[2].data.push(option_emotionPie.series[0].data[2].value);
+                option_emotion.series[3].data.push(option_emotionPie.series[0].data[3].value);
+                option_emotion.series[4].data.push(option_emotionPie.series[0].data[4].value);
+                option_emotion.series[5].data.push(option_emotionPie.series[0].data[5].value);
+
+
+                myChart_emotion.setOption(option_emotion);
+            },
+        }
+    });
+</script>
+
+
+</html>

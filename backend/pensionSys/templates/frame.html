@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html style="overflow:hidden">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+    <el-header>
+        <el-menu class="el-menu-demo" mode="horizontal" >
+            <div style="float:left">
+                <img src="{% static 'images/logo.png' %}" height="30%" width="30%"></img>
+            </div>
+            <el-submenu style="float:right">
+                <template slot="title">我的</template>
+                <el-menu-item index="0-1"  @click="open('account/modifyPwd')" >修改密码</el-menu-item>
+                <el-menu-item index="0-2" @click="logout()" >退出</el-menu-item>
+            </el-submenu>
+            <el-menu-item style="float:right"><a href="/admin" target="_blank">后台管理</a></el-menu-item>
+        </el-menu>
+    </el-header>
+    <el-container style="height: 1000px; border: 1px solid #eee">
+        <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+            <el-menu default-active="activeIndex" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+
+                <el-menu-item index="1" @click="open('mainpage')">
+                    <i class="el-icon-menu"></i>
+                    <span slot="title">首页</span>
+                </el-menu-item>
+
+
+                <el-submenu index="2">
+                    <template slot="title">
+                        <i class="el-icon-location"></i>
+                        <span>信息管理</span>
+                    </template>
+                    <el-menu-item-group>
+                        <el-menu-item index="2-1" @click="open('elder/page')">老人</el-menu-item>
+                        <el-menu-item index="2-2" @click="open('worker/page')">工作人员</el-menu-item>
+                        <el-menu-item index="2-3" @click="open('volunteer/page')">义工</el-menu-item>
+                    </el-menu-item-group>
+                </el-submenu>
+
+                <el-submenu index="3">
+                    <template slot="title">
+                        <i class="el-icon-document"></i>
+                        <span>统计分析</span>
+                    </template>
+                    <el-menu-item-group>
+                        <el-menu-item index="3-1" @click="open('camera/strangerpage')">陌生人检测</el-menu-item>
+                        <el-menu-item index="3-2" @click="open('camera/interactpage')">互动检测</el-menu-item>
+                        <el-menu-item index="3-3" @click="open('camera/emotionpage')">情感检测</el-menu-item>
+                        <el-menu-item index="3-4" @click="open('camera/invadepage')">禁止区域闯入检测</el-menu-item>
+                        <el-menu-item index="3-5" @click="open('camera/fallpage')">摔倒检测</el-menu-item>
+                    </el-menu-item-group>
+                </el-submenu>
+
+                <el-menu-item index="4" @click="open('camera/page')">
+                    <i class="el-icon-setting"></i>
+                    <span slot="title">监控</span>
+                </el-menu-item>
+
+            </el-menu>
+        </el-aside>
+
+        <el-main style="height:100%;overflow:hidden">
+            <iframe style="width:100%; height:100%; border: 0;" :src="pageurl"></iframe>
+        </el-main>
+    </el-container>
+
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                activeIndex: '1',
+                pageurl: 'mainpage',
+            }
+        },
+        methods: {
+            open(url) {
+                this.pageurl = url;
+            },
+            logout(){
+                $.ajax({
+                    type:"POST",
+                    url:'/account/logout',
+                    async:false,
+                    success:function(){
+                        window.location='home';
+                    }
+                })
+            }
+        }
+    })
+</script>
+
+<script type="text/javascript">
+    var socket = new WebSocket("ws:" + window.location.host + "/websocket/msg");
+    socket.onopen = function () {
+        console.log('msg WebSocket open');//成功连接上Websocket
+    };
+    socket.onmessage = function (e) {
+        data = JSON.parse(e.data.replace(/\'/g,'\"'));
+        vue.$notify({
+            title: data.msg,
+            dangerouslyUseHTMLString: true,
+            message:
+                "<img width='30%' height='30%' src='"+data.dir+"'>"
+        });
+    };
+    socket.onclose=function(e){
+        console.log(e);
+        socket.close(); //关闭TCP连接
+    };
+    if (socket.readyState == WebSocket.OPEN) socket.onopen();
+    window.onbeforeunload = function(event) {
+        console.log("关闭WebSocket连接！");
+        {#socket.send('close');#}
+        socket.close();
+    }
+</script>
+
+</html>

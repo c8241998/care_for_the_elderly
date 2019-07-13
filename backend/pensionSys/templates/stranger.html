@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <style>
+        .demo-table-expand {
+            font-size: 0;
+        }
+        .demo-table-expand label {
+            width: 90px;
+            color: #99a9bf;
+        }
+        .demo-table-expand .el-form-item {
+            margin-right: 0;
+            margin-bottom: 0;
+            width: 50%;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%">
+            <el-table-column type="expand">
+                <template slot-scope="props">
+                    <el-form label-position="left" inline class="demo-table-expand">
+                        <el-col>
+                            <el-form-item label="ID">
+                                <span>== props.row.id ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="性别">
+                                <span>== props.row.gender ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="年龄">
+                                <span>== props.row.age ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="上衣类型">
+                                <span>== props.row.upper_wear_fg ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="是否带手机">
+                                <span>== props.row.cellphone ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="正面or侧面">
+                                <span>== props.row.orientation ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="是否戴帽">
+                                <span>== props.row.headwear ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="是否戴眼镜">
+                                <span>== props.row.glasses ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="是否背包">
+                                <span>== props.row.bag ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="上衣花纹">
+                                <span>== props.row.upper_wear_texture ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="上衣颜色">
+                                <span>== props.row.upper_color ==</span>
+                            </el-form-item>
+
+                            <el-form-item label="下衣">
+                                <span>== props.row.lower_wear ==</span>
+                            </el-form-item>
+
+
+                        </el-col>
+
+                        <el-form-item label="截图">
+                            <!-- <span>{{ props.row.lower_wear }}</span> -->
+                            <img :src="props.row.screenshot" style="width:800px; height: 500px;">
+                        </el-form-item>
+
+
+
+
+                    </el-form>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    label="ID"
+                    prop="id">
+            </el-table-column>
+            <el-table-column
+                    label="时间"
+                    prop="time">
+            </el-table-column>
+
+            <el-table-column
+                    label="年龄"
+                    prop="age">
+            </el-table-column>
+
+            <el-table-column
+                    label="性别"
+                    prop="gender">
+            </el-table-column>
+
+
+
+
+        </el-table>
+    </template>
+</div>
+<script>
+    var app = new Vue ({
+        delimiters: ['==', '=='],
+        el: "#app",
+        data:{
+            tableData: [],
+        },
+        created: function () {
+            this.show();
+        },
+        methods: {
+            show(){
+                var app_ = this;
+                var list = [];
+                var ajax_url = '/camera/strangerinit';
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            var arr = JSON.stringify(data);
+                            list = JSON.stringify(data.content);
+                            obj = JSON.parse(list);
+                            for(var i in obj){
+                                let e = {id:obj[i].id,gender:obj[i].gender,upper_wear_fg:obj[i].upper_wear_fg,cellphone:obj[i].cellphone,orientation:obj[i].orientation,headwear:obj[i].headwear,age:obj[i].age,glasses:obj[i].glasses,bag:obj[i].bag,upper_wear_texture:obj[i].upper_wear_texture,lower_wear:obj[i].lower_wear,upper_color:obj[i].upper_color,time:obj[i].time,screenshot:obj[i].photo};
+                                app_.tableData.push(e);
+                            }
+                        }
+                    }
+                })
+                return false;
+            },
+        }
+    });
+</script>
+</body>
+</html>

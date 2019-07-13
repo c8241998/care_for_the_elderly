@@ -1,0 +1,46 @@
+POST http://localhost:8000/elder/add?name=1&phone=2&birthday=1998-10-14&gender=男&id_card=12313&fam_phone=1&fam_name=1
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-07-03T052145.200.json
+
+###
+
+POST http://localhost:8000/elder/add?name=1&phone=2&birthday=1998-10-14&gender=男&id_card=12313&fam_phone=1&fam_name=1
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-07-03T051204.200.json
+
+###
+
+POST http://localhost:8000/elder/add?name=1&phone=2
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-07-03T050628.200.json
+
+###
+
+POST http://localhost:8000/elder/add?name=1&phone=2
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-07-03T050521.200.json
+
+###
+
+POST http://localhost:8000/elder/add?name=1&phone=2
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-07-03T050212.403.html
+
+###
+
+POST http://localhost:8000/account/register?username=user1&password=123&email=1@qq.com
+Accept: */*
+Cache-Control: no-cache
+
+###
+

@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{% static 'css/camera_default.css'%}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/camera_mobile.css'%}"/>
+<link rel='stylesheet' href="{% static 'css/jquery-ui.css'%}">
+<script type="text/javascript" src="{% static 'js/jquery-1.8.3.min.js'%}"></script>
+<script type="text/javascript" src="{% static 'js/camera_common.js'%}"></script>
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,maximum-scale=1.0,user-scalable=no">
+<title>实时监控</title>
+</head>
+<body>
+
+    <div id="wrapper">
+
+        <h1>智慧养老系统 - 实时监控 </h1>
+        <h2><strong>当前时间</strong><b class="logoline"></b><b class="logoline1"></b><b class="logoline2"></b><b
+                class="logoline3"></b><b class="logoline4"></b></h2>
+        <!--时间区-->
+        <div class="date-timer">
+            <p>
+                <strong id="H"></strong>
+                <strong>:</strong>
+                <strong id="M"></strong>
+                <strong id="S" class="hide"></strong>
+            </p>
+            <em id="D"></em>
+            <ul>
+                <li id="Y"></li>
+                <li id="MH"></li>
+                <li id="TD"></li>
+            </ul>
+        </div>
+
+
+        <div class="center-area">
+                <div id="app" style="margin:10px;margin-bottom: 30px;">
+                        <template >
+                            <el-select size="mini" v-model="value" placeholder="点击切换摄像头" >
+                                    <el-option label="摄像头1" value="1" @click.native="tab1()">
+                                    </el-option>
+                                    <el-option label="摄像头2" value="2" @click.native="tab2()">
+                                    </el-option>
+                            </el-select>
+                        </template>
+                </div>
+            <img src="{{ ip1 }}"  style="width: 800px;  height:500px" id="camera"/>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data:{
+                    value: ''
+            },
+         methods:{
+            tab1(){
+                document.getElementById("camera").src="{{ ip1 }}"
+                    {#"http://172.20.10.3:8001/camera/video_feed/";#}
+            },
+            tab2(){
+                document.getElementById("camera").src="{{ ip2 }}"
+                    {#"http://172.20.10.2:8000/camera/video_feed/";#}
+            }
+         }
+        });
+    </script>
+</body>
+</html>

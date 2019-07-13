@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <el-upload slot="reference" ref="upload" class="avatar-uploader" action="https://jsonplaceholder.typicode.com/posts/"
+               :show-file-list="false" :before-upload="beforeAvatarUpload" :on-change="preview" :auto-upload="false"
+               style="align-content: center">
+        <img id="avatar" v-if="imageUrl" :src="imageUrl" class="avatar">
+        <i v-else class="el-icon-plus avatar-uploader-icon"
+           style="display: flex;justify-content: center;align-items: center;"></i>
+    </el-upload>
+    <el-button id="upload" type="primary" round @click="submitUpload">Let's go</el-button>
+
+
+    <div>
+        <input v-model="msg">
+        <button @click="websocketsend"></button>
+    </div>
+
+</div>
+
+`
+</body>
+
+<script type="text/javascript">
+    var socket = new WebSocket("ws:" + window.location.host + "/websocket");
+    socket.onopen = function () {
+        console.log('WebSocket open');//成功连接上Websocket
+        {#socket.send('adasdasda。。。。');//发送数据到服务端#}
+    };
+    socket.onmessage = function (e) {
+        console.log('message: ' + e.data);//打印服务端返回的数据
+    };
+    socket.onclose=function(e){
+        console.log(e);
+        {#socket.send('close');#}
+        socket.close(); //关闭TCP连接
+    };
+    if (socket.readyState == WebSocket.OPEN) socket.onopen();
+    window.onbeforeunload = function(event) {
+        console.log("关闭WebSocket连接！");
+        {#socket.send('close');#}
+        socket.close();
+    }
+</script>
+
+<script>
+    var vue = new Vue( {
+        el:'#app',
+        data() {
+            return {
+                imageUrl: '',
+                fd: '',
+                msg:'test'
+            }
+        },
+        methods:{
+            websocketsend(){
+                socket.send(vue.msg);
+            },
+            beforeAvatarUpload(file) {
+
+                vue.fd = new FormData();
+                vue.fd.append("file", file);
+                vue.fd.append("id", "13");
+                const isType = (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/gif' || file.type === 'image/bmp');
+
+                if (!isType) {
+                    this.$message.error('Just PNG, JPG, GIF, BMP Available!');
+                    return false;
+                }
+
+                return true;
+            }
+            ,
+            preview(){},
+            submitUpload() {
+                this.$refs.upload.submit();
+                $.ajax({
+                    url: "/worker/uploadPhoto",
+                    type: "POST",
+                    processData: false,
+                    contentType: false,
+                    data: vue.fd,
+                    success: function (data1) {
+                        window.parent.vue.$message({
+                            type: 'success',
+                            message: "成功添加头像!"
+                        });
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>

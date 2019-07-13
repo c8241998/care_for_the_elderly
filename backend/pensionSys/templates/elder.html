@@ -1,0 +1,395 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Elder</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        .el-table-add-row {
+            margin-top: 10px;
+            width: 100%;
+            height: 34px;
+            border: 1px dashed #c1c1cd;
+            border-radius: 3px;
+            cursor: pointer;
+            justify-content: center;
+            display: flex;
+            line-height: 34px;
+        }
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <el-row>
+        <el-col span="24">
+            <el-table size="mini"
+                      :data="master_user.data.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"
+                      style="width: 100%" highlight-current-row>
+                <el-table-column type="index"></el-table-column>
+                <el-table-column v-for="(v,i) in master_user.columns" :prop="v.field" :label="v.title" :width="v.width">
+                    <template slot-scope="scope">
+
+                        <span v-if="scope.row.isSet && i==0">
+                            <el-upload
+                                    class="avatar-uploader"
+                                    action="https://jsonplaceholder.typicode.com/posts/"
+                                    :show-file-list="false"
+                                    :on-success="handleAvatarSuccess"
+                                    :before-upload="beforeAvatarUpload" >
+                                <img v-if="master_user.sel[v.field]" :src="master_user.sel[v.field]" class="avatar"  >
+                                <i v-else class="el-icon-plus avatar-uploader-icon" ></i>
+                            </el-upload>
+                        </span>
+
+                        <span v-if="scope.row.isSet && i==4">
+                                    <el-select  size="mini" v-model="master_user.sel[v.field]" placeholder="请输入内容">
+                                            <el-option label="男" value="男"></el-option>
+                                            <el-option label="女" value="女"></el-option>
+                                    </el-select>
+                        </span>
+
+                        <span v-if="scope.row.isSet && i==3">
+                                    <el-date-picker
+                                            v-model="master_user.sel[v.field]"
+                                            size="mini"
+                                            value-format="yyyy-MM-dd"
+                                            format="yyyy-MM-dd"
+                                            placeholder="选择日期">
+                                    </el-date-picker>
+                        </span>
+
+                        <span v-if="scope.row.isSet && i !== 4 && i !==3 && i !== 0 ">
+                                    <el-input size="mini" placeholder="请输入内容" v-model="master_user.sel[v.field]">
+                                    </el-input>
+                        </span>
+
+
+                        <span v-if="!scope.row.isSet && i == 0">
+                                <el-avatar :size="50" :src="scope.row[v.field]"></el-avatar>
+                        </span>
+                        <span v-if="!scope.row.isSet && i !== 0">==scope.row[v.field]==</span>
+                    </template>
+                </el-table-column>
+
+                <el-table-column  width="180" align="center">
+                    <template slot="header" slot-scope="scope">
+                        <el-input
+                                v-model="search"
+                                size="mini"
+                                placeholder="输入关键字搜索"/>
+                    </template>
+
+                    <template slot-scope="scope">
+                            <span class="el-tag el-tag--info el-tag--mini" style="cursor: pointer;" @click="pwdChange(scope.row,scope.$index,true);add(scope.$index)">
+                                ==scope.row.isSet?'保存':"修改"==
+                            </span>
+                        <span v-if="!scope.row.isSet" class="el-tag el-tag--danger el-tag--mini" style="cursor: pointer;"
+                              @click="remove(master_user.data, scope.$index, true)">
+                                删除
+                            </span>
+                        <span v-else class="el-tag  el-tag--mini" style="cursor: pointer;" @click="pwdChange(scope.row,scope.$index,false)">
+                                取消
+                            </span>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-col>
+        <el-col span="24">
+            <div class="el-table-add-row" style="width: 99.2%;" @click="addMasterUser()"><span>+ 添加</span></div>
+        </el-col>
+    </el-row>
+
+
+</div>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue@2.5.17/dist/vue.min.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+    //id生成工具 这个不用看 示例而已 模拟后台返回的id
+    var generateId = {
+        _count: 1,
+        get(){return ((+new Date()) + "_" + (this._count++))}
+    };
+    //主要内容
+    var app = new Vue({
+        delimiters: ['==', '=='],
+        el: "#app",
+        data: {
+            master_user: {
+                sel: null,//选中行
+                columns: [
+                    { field: "file", title: "头像", width: 70 },
+                    { field: "name", title: "姓名", width: 120 },
+                    { field: "phone", title: "手机号码", width: 130 },
+                    { field: "birthday", title: "生日", width: 230 },
+                    { field: "gender", title: "性别", width: 130 },
+                    { field: "id_card", title: "身份证号", width:180 },
+                    {#{ field: "fam_name", title: "亲属姓名", width: 120},#}
+                    { field: "fam_phone", title: "亲属电话", width: 130},
+                ],
+                data: [],
+            },
+            search: '',
+            imageUrl: "",
+            fd:"",
+        },
+        created: function () {
+            this.show();
+        },
+        methods: {
+            //读取表格数据
+            readMasterUser() {
+                //根据实际情况，自己改下啊
+                app.master_user.data.map(i => {
+                    i.id = generateId.get();//模拟后台插入成功后有了id
+                    i.isSet=false;//给后台返回数据添加`isSet`标识
+                    return i;
+                });
+            },
+            //添加账号
+            addMasterUser() {
+                for (let i of app.master_user.data) {
+                    if (i.isSet) return app.$message.warning("请先保存当前编辑项");
+                }
+                let j = { num: 0, "name": "", "phone": "", "birthday": "", "gender": "", "id_card": "", "fam_name":"",
+                    "fam_phone":"", "isSet": true, "_temporary": true ,state:0};
+                app.master_user.data.push(j);
+                app.master_user.sel = JSON.parse(JSON.stringify(j));
+
+            },
+            //删除
+            remove(rows, index, cg) {
+                //点击删除，判断是否已经保存所有操作
+                for (let i of app.master_user.data) {
+                    if (i.isSet) {
+                        return app.$message.warning("请先保存当前编辑项");
+                    }
+                }
+                //是否是删除操作
+                if(cg){
+                    obj = JSON.parse(JSON.stringify(app.master_user.data));
+                    var id = obj[index].num;
+                    var ajax_url = '/elder/remove';
+                    $.ajax({
+                        type:"POST",
+                        url:ajax_url,
+                        dataType:"JSON",
+                        async:false,
+                        data:{"id":id},
+                        success:function(data){
+                            if(data.status == "success"){
+                                rows.splice(index, 1);
+                            }
+                            else {
+                                app.$message.error('删除失败');
+                            }
+                        }
+                    })
+                    return false;
+                }
+            },
+
+            show(){
+                var app_ = this;
+                var list = [];
+                var ajax_url = '/elder/init';
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            var arr = JSON.stringify(data);
+                            list = JSON.stringify(data.content);
+                            obj = JSON.parse(list);
+                            for(var i in obj){
+                                let e = { num:obj[i].id,file:"../media/"+obj[i].photo, name: obj[i].name, phone:obj[i].phone, birthday:obj[i].birthday, gender: obj[i].gender, id_card: obj[i].id_card,fam_name:obj[i].fam_name,fam_phone:obj[i].fam_phone};
+                                app_.master_user.data.push(e);
+                            }
+                        }
+                    }
+                })
+                return false;
+            },
+
+            add(index){
+                obj = JSON.parse(JSON.stringify(app.master_user.sel));
+                if(obj.name == ""){
+                    app.$message.warning("请输入老人姓名");
+                }
+                if(obj.state == 0&&obj.name!=""){
+                    var name = obj.name;
+                    var phone = obj.phone;
+                    var birthday = obj.birthday;
+                    var gender = obj.gender;
+                    var id_card = obj.id_card;
+                    var fam_name = obj.fam_name;
+                    var fam_phone = obj.fam_phone;
+                    var ajax_url = '/elder/add';
+                    $.ajax({
+                        type:"POST",
+                        url:ajax_url,
+                        dataType:"JSON",
+                        async:false,
+                        data:{"name":name,"phone":phone,"birthday":birthday,"gender":gender,"id_card":id_card,"fam_name":fam_name,"fam_phone":fam_phone},
+                        success:function(data){
+                            if(data.status == "success"){
+                                window.parent.vue.$message({
+                                    message: '添加成功',
+                                    type: 'success'
+                                });
+                                window.location.reload();
+
+                            }
+                            else {
+                                window.parent.vue.$message({
+                                    message: '添加失败',
+                                    type: 'error'
+                                });
+                                window.location.reload();
+                            }
+                        }
+                    })
+                    return false;
+                }
+                app.master_user.data[index].state = 1;
+            },
+            //修改
+            pwdChange(row, index, cg) {
+                aaa = JSON.parse(JSON.stringify(app.master_user.data));
+                obj = aaa[index];
+                //是否是取消操作
+                if (!cg) {
+                    if (!app.master_user.sel.id)
+                        window.location.reload();
+                    return row.isSet = !row.isSet;
+                }
+                if(obj.state != 0){
+                    //点击修改 判断是否已经保存所有操作
+                    for (let i of app.master_user.data) {
+                        if (i.isSet && i.id != row.id) {
+                            app.$message.warning("请先保存当前编辑项");
+                            return false;
+                        }
+                    }
+                    //提交数据
+                    if (row.isSet) {
+                        //项目是模拟请求操作  自己修改下
+                        (function () {
+                            let data = JSON.parse(JSON.stringify(app.master_user.sel));
+                            var fam_name = data.fam_name;
+                            var fam_phone = data.fam_phone;
+                            var id = data.num;
+                            var name = data.name;
+                            var phone = data.phone;
+                            var birthday = data.birthday;
+                            var gender = data.gender;
+                            var id_card = data.id_card;
+                            var ajax_url = '/elder/update';
+                            $.ajax({
+                                type:"POST",
+                                url:ajax_url,
+                                dataType:"JSON",
+                                async:false,
+                                data:{"id":id,"name":name,"phone":phone,"birthday":birthday,"gender":gender,"id_card":id_card,"fam_name":fam_name,"fam_phone":fam_phone},
+                                success:function(data){
+                                    if(data.status == "success"){
+                                        for (let k in data) row[k] = data[k];
+                                        window.parent.vue.$message({
+                                            type: 'success',
+                                            message: "保存成功!"
+                                        });
+                                        //然后这边重新读取表格数据
+                                        window.location.reload();
+                                        row.isSet = false;
+                                    }
+                                    else {
+                                        window.parent.vue.$message({
+                                            message: '更新失败',
+                                            type: 'error'
+                                        });
+                                    }
+                                }
+                            })
+                            return false;
+                        })();
+                    } else {
+                        app.master_user.sel = JSON.parse(JSON.stringify(row));
+                        row.isSet = true;
+                    }
+                }
+            },
+            handleAvatarSuccess(res, file) {
+                this.imageUrl = URL.createObjectURL(file.raw);
+                app.master_user.sel.file = this.imageUrl;
+            },
+
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                let data = JSON.parse(JSON.stringify(app.master_user.sel));
+                var id = data.num;
+                app.fd = new FormData();
+                app.fd.append("file", file);
+                app.fd.append("id", id);
+                $.ajax({
+                    url: "/elder/uploadPhoto",
+                    type: "POST",
+                    processData: false,
+                    contentType: false,
+                    data: app.fd,
+                    success: function (data1) {
+                        window.parent.vue.$message({
+                            message: '头像添加成功',
+                            type: 'success'
+                        });
+                    }
+                });
+                return isJPG && isLt2M;
+            },
+
+        }
+    });
+</script>
+</body>
+
+</html>

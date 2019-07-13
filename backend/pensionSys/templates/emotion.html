@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html >
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <style>
+        .demo-table-expand {
+            font-size: 0;
+        }
+        .demo-table-expand label {
+            width: 90px;
+            color: #99a9bf;
+        }
+        .demo-table-expand .el-form-item {
+            margin-right: 0;
+            margin-bottom: 0;
+            width: 50%;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-table
+                ref="filterTable"
+                :data="tableData"
+                style="width: 100%">
+            <el-table-column type="expand">
+                <template slot-scope="props">
+                    <el-form label-position="left" inline class="demo-table-expand">
+                        <el-form-item label="截图">
+                            <!-- <span>{{ props.row.lower_wear }}</span> -->
+                            <img :src="props.row.screenshot" style="width:800px; height: 500px;">
+                        </el-form-item>
+                    </el-form>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    label="ID"
+                    prop="id">
+            </el-table-column>
+
+            <el-table-column
+                    label="姓名"
+                    prop="name">
+            </el-table-column>
+
+            <el-table-column
+                    label="情绪类型"
+                    prop="type"
+                    :filters="[{ text: 'angry', value: 'angry' }, { text: 'disgust', value: 'disgust' }, { text: 'fear', value: 'fear' }
+                    , { text: 'happy', value: 'happy' }, { text: 'neutral', value: 'neutral' }, { text: 'sad', value: 'sad' }
+                    , { text: 'surprise', value: 'surprise' }]"
+                    :filter-method="filterType"
+                    filter-placement="bottom-end"
+
+            >
+                <template slot-scope="scope">
+                    <el-tag
+                            :type="scope.row.type === 'happy' ? 'success' : (scope.row.type === 'sad' ?'danger':'primary')"
+                            disable-transitions>==scope.row.type==</el-tag>
+                </template>
+            </el-table-column>
+
+            <el-table-column
+                    label="时间"
+                    prop="time">
+            </el-table-column>
+            </el-table-column>
+        </el-table>
+    </template>
+</div>
+<script>
+    var app = new Vue ({
+        el: "#app",
+        delimiters: ['==', '=='],
+        data:{
+            tableData: [],
+        },
+        created: function () {
+            this.show();
+        },
+        methods: {
+            filterType(value, row) {
+                return row.type === value;
+            },
+            show(){
+                var app_ = this;
+                var list = [];
+                var ajax_url = '/camera/emotioninit';
+                $.ajax({
+                    type:"GET",
+                    url:ajax_url,
+                    dataType:"JSON",
+                    async:false,
+                    data:{},
+                    success:function(data){
+                        if(data.status == "success"){
+                            var arr = JSON.stringify(data);
+                            list = JSON.stringify(data.content);
+                            obj = JSON.parse(list);
+                            for(var i in obj){
+                                let e = {id:obj[i].id,name:obj[i].elder,type:obj[i].label,time:obj[i].time,screenshot:obj[i].photo};
+                                app_.tableData.push(e);
+                            }
+                        }
+                    }
+                })
+                return false;
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

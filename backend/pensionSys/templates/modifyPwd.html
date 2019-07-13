@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+
+</head>
+
+<body>
+<div id="app">
+    <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="旧密码" prop="oldPass" >
+            <el-input type="password" v-model="ruleForm.oldPass" autocomplete="off" style="width:600px" id="oldPass"></el-input>
+        </el-form-item>
+
+        <el-form-item label="密码" prop="pass">
+            <el-input type="password" v-model="ruleForm.pass" autocomplete="off" style="width:600px" id="password1"></el-input>
+        </el-form-item>
+
+        <el-form-item label="确认密码" prop="checkPass">
+            <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off" style="width:600px" id="password2"></el-input>
+        </el-form-item>
+
+        <el-form-item>
+            <el-button type="primary" @click="submitForm()">提交</el-button>
+            <el-button @click="resetForm('ruleForm')">重置</el-button>
+        </el-form-item>
+
+    </el-form>
+</div>
+
+<script>
+    var app = new Vue({
+        el: "#app",
+        data() {
+            return {
+                ruleForm: {
+                    pass: '',
+                    checkPass: '',
+                    oldPass: ''
+                },
+                rules: {
+                    pass: [],
+                    checkPass: [],
+                    oldPass: []
+                }
+            };
+
+        },
+        methods: {
+            submitForm() {
+                var oldPass = $('#oldPass').val();
+                var password1= $('#password1').val();
+                var password2= $('#password2').val();
+                var ajaxurl = '/account/modifyPwd';
+                if(oldPass != "" && password1 !="" &&password2 !=""){
+                    if(password1 == password2){
+                        $.ajax({
+                            type:"POST",
+                            url:ajaxurl,
+                            dataType:"JSON",
+                            async:false,
+                            data:{"old_pass":oldPass,"new_pass":password1},
+                            success:function(data){
+                                if(data.status == 'success'){
+                                    window.parent.vue.$message({
+                                        type: 'success',
+                                        message: "修改成功!"
+                                    });
+                                    window.location.reload();
+                                }
+                                else {
+                                    window.parent.vue.$message({
+                                        type: 'error',
+                                        message: "修改失败!"
+                                    });
+                                }
+                            }
+                        })
+                        return false;
+                    }
+                    else{
+                        window.parent.vue.$message({
+                            type: 'error',
+                            message: "两次密码不一致!"
+                        });
+                    }
+                }
+                else{
+                    window.parent.vue.$message({
+                        type: 'error',
+                        message: "请完整填写!"
+                    });
+                }
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+        }
+    });
+</script>
+</body>
+
+</html>
